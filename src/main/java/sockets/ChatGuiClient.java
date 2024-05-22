@@ -46,6 +46,13 @@ public class ChatGuiClient extends Application {
 
     private ServerInfo serverInfo;
 
+    private String selectedUser = "Everyone";
+
+    public void setSelectedUser(String user) {
+        this.selectedUser = user;
+    }
+
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -80,7 +87,7 @@ public class ChatGuiClient extends Application {
         listView.setPrefSize(200, 250);
         listView.setEditable(false);
         listView.setItems(names);
-        names.add("Example name");
+        names.add("Everyone");
         listView.setCellFactory(param -> new RadioListCell());
         borderPane.setLeft(listView);
 
@@ -123,7 +130,6 @@ public class ChatGuiClient extends Application {
         });
 
         new Thread(socketListener).start();
-
     }
 
     public void sendMessage(Message m) {
@@ -141,7 +147,12 @@ public class ChatGuiClient extends Application {
             return;
         }
         textInput.clear();
-        sendMessage(new MessageCtoS_Chat(msg));
+
+        if (selectedUser.equals("Everyone")) {
+            sendMessage(new MessageCtoS_Chat(msg));
+        } else {
+            sendMessage(new MessageCtoS_DM(selectedUser, msg));
+        }
     }
 
     public ObjectOutputStream getSocketOut() {
@@ -182,12 +193,11 @@ public class ChatGuiClient extends Application {
         }
     }
 
-    private Optional<ServerInfo> getServerIpAndPort() {
-        // In a more polished product, we probably would have the ip /port hardcoded
-        // But this a great way to demonstrate making a custom dialog
-        // Based on Custom Login Dialog from
-        // https://code.makery.ch/blog/javafx-dialogs-official/
+    public void removeClient(String clientName) {
+        names.remove(clientName);
+    }
 
+    private Optional<ServerInfo> getServerIpAndPort() {
         // Create a custom dialog for server ip / port
         Dialog<ServerInfo> getServerDialog = new Dialog<>();
         getServerDialog.setTitle("Enter Server Info");
@@ -256,16 +266,25 @@ public class ChatGuiClient extends Application {
             } else {
                 RadioButton radioButton = new RadioButton(obj);
                 radioButton.setToggleGroup(group);
-                Button kickButton = new Button("Kick");
-                kickButton.setOnAction(event -> {
-                    String userNameToKick = obj; 
-                    kickUser(userNameToKick);
+                radioButton.setSelected(obj.equals(selectedUser));
+                radioButton.setOnAction(event -> {
+                    setSelectedUser(obj);
                 });
-                // Add Listeners if any
-                setGraphic(radioButton);
+    
+                HBox hbox = new HBox(radioButton);
+                if (!obj.equals("Everyone") && !obj.equals(selectedUser)) {
+                    Button kickButton = new Button("Kick");
+                    kickButton.setOnAction(event -> {
+                        String userNameToKick = obj;
+                        kickUser(userNameToKick);
+                    });
+                    hbox.getChildren().add(kickButton);
+                }
+                setGraphic(hbox);
             }
         }
     }
+        
     private void kickUser(String userName) {
         sendMessage(new MessageCtoS_Kick(userName));
     }

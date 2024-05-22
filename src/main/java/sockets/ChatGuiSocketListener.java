@@ -2,7 +2,6 @@ package sockets;
 
 import java.io.ObjectInputStream;
 import java.util.Optional;
-
 import javafx.application.Platform;
 import javafx.scene.control.TextInputDialog;
 
@@ -12,13 +11,9 @@ public class ChatGuiSocketListener implements Runnable {
     private ChatGuiClient chatGuiClient;
     private String username = null;
 
-    // volatile guarantees that different threads reading the same variable will
-    // always see the latest write.
-    // volatile variables are not stored in caches.
     volatile boolean appRunning = false;
 
-    public ChatGuiSocketListener(ObjectInputStream socketIn,
-            ChatGuiClient chatClient) {
+    public ChatGuiSocketListener(ObjectInputStream socketIn, ChatGuiClient chatClient) {
         this.socketIn = socketIn;
         this.chatGuiClient = chatClient;
     }
@@ -33,11 +28,10 @@ public class ChatGuiSocketListener implements Runnable {
                 chatGuiClient.getSendButton().setDisable(false);
                 chatGuiClient.getMessageArea().appendText("Welcome to the chat, " + username + "\n");
             });
-        }
-
-        else {
+        } else {
             Platform.runLater(() -> {
                 chatGuiClient.getMessageArea().appendText(m.userName + " joined the chat!\n");
+                chatGuiClient.addClient(m.userName);
             });
         }
     }
@@ -63,6 +57,15 @@ public class ChatGuiSocketListener implements Runnable {
     private void processExitMessage(MessageStoC_Exit m) {
         Platform.runLater(() -> {
             chatGuiClient.getMessageArea().appendText(m.userName + " has left the chat!\n");
+            chatGuiClient.removeClient(m.userName);
+        });
+    }
+
+    private void processExistingUsersMessage(MessageStoC_ExistingUsers m) {
+        Platform.runLater(() -> {
+            for (String user : m.userNames) {
+                chatGuiClient.addClient(user);
+            }
         });
     }
 
@@ -70,19 +73,11 @@ public class ChatGuiSocketListener implements Runnable {
         try {
             appRunning = true;
 
-            // Ask the gui to show the username dialog and update username
-            // getName launches a modal, therefore needs to run in the JavaFx thread, hence
-            // wrapping this with run later
-            // save the username for later comparison in processWelcomeMessage
-            // Send to the server
-
             Platform.runLater(() -> {
                 this.username = getName();
                 chatGuiClient.sendMessage(new MessageCtoS_Join(username));
             });
 
-            // If the user closes the UI window in ChatGuiClient, appRunning is changed to
-            // false to exit this loop.
             while (appRunning) {
                 Message msg = (Message) socketIn.readObject();
 
@@ -96,6 +91,8 @@ public class ChatGuiSocketListener implements Runnable {
                     processDirectMessage((MessageStoC_DM) msg);
                 } else if (msg instanceof MessageStoC_Exit) {
                     processExitMessage((MessageStoC_Exit) msg);
+                } else if (msg instanceof MessageStoC_ExistingUsers) {
+                    processExistingUsersMessage((MessageStoC_ExistingUsers) msg);
                 } else {
                     System.out.println("Unhandled message type: " + msg.getClass());
                 }
@@ -123,5 +120,4 @@ public class ChatGuiSocketListener implements Runnable {
         }
         return username;
     }
-
 }
