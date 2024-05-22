@@ -19,6 +19,11 @@ public class ChatServerSocketListener  implements Runnable {
         broadcast(new MessageStoC_Chat(client.getUserName(), m.msg));
     }
 
+    private void processKickMessage(MessageCtoS_Kick m) {
+        System.out.println("Kick received from " + client.getUserName() + " to kick " + m.getUserName()+ " - broadcasting");
+        broadcast(new MessageStoC_Chat(client.getUserName(), m.getUserName()));
+    }
+
     /**
      * Broadcasts a message to all clients connected to the server.
      */
@@ -67,6 +72,9 @@ public class ChatServerSocketListener  implements Runnable {
                 }
                 else if (msg instanceof MessageCtoS_Chat) {
                     processChatMessage((MessageCtoS_Chat) msg);
+                }
+                else if (msg instanceof MessageCtoS_Kick) {
+                    processKickMessage((MessageCtoS_Kick) msg);
                 }
                 else {
                     System.out.println("Unhandled message type: " + msg.getClass());
