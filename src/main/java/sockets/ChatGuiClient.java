@@ -250,9 +250,17 @@ public class ChatGuiClient extends Application {
             } else {
                 RadioButton radioButton = new RadioButton(obj);
                 radioButton.setToggleGroup(group);
+                Button kickButton = new Button("Kick");
+                kickButton.setOnAction(event -> {
+                    String userNameToKick = obj; 
+                    kickUser(userNameToKick);
+                });
                 // Add Listeners if any
                 setGraphic(radioButton);
             }
         }
+    }
+    private void kickUser(String userName) {
+        sendMessage(new MessageCtoS_Kick(userName));
     }
 }
