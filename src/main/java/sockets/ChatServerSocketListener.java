@@ -21,7 +21,20 @@ public class ChatServerSocketListener  implements Runnable {
 
     private void processKickMessage(MessageCtoS_Kick m) {
         System.out.println("Kick received from " + client.getUserName() + " to kick " + m.getUserName()+ " - broadcasting");
-        broadcast(new MessageStoC_Chat(client.getUserName(), m.getUserName()));
+        broadcast(new MessageStoC_Kick(client.getUserName(), m.getUserName()));
+    }
+
+    private void processDirectMessage(MessageCtoS_DM m) {
+        System.out.println("DM request received from " + client.getUserName() + " - responding");
+
+        for (ClientConnectionData clientConnectionData : clientList) {
+            if (clientConnectionData.getUserName().toLowerCase().trim().equals(m.userName.toLowerCase().trim())) {
+                respond(new MessageStoC_DM(m.msg, client.getUserName()), clientConnectionData);
+                return;
+            }
+        }
+
+        System.out.println("DM failed - could not find user");
     }
 
     /**
@@ -45,7 +58,7 @@ public class ChatServerSocketListener  implements Runnable {
 
     public void respond(Message m, ClientConnectionData client) {
         try {
-            System.out.println("broadcasting: " + m);
+            System.out.println("responding: " + m);
             client.getOut().writeObject(m);
         } catch (Exception ex) {
             System.out.println("broadcast caught exception: " + ex);
@@ -75,6 +88,9 @@ public class ChatServerSocketListener  implements Runnable {
                 }
                 else if (msg instanceof MessageCtoS_Kick) {
                     processKickMessage((MessageCtoS_Kick) msg);
+                }
+                else if (msg instanceof MessageCtoS_DM) {
+                    processDirectMessage((MessageCtoS_DM) msg);
                 }
                 else {
                     System.out.println("Unhandled message type: " + msg.getClass());
