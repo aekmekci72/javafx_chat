@@ -38,6 +38,16 @@ public class ChatServerSocketListener  implements Runnable {
         }        
     }
 
+    public void respond(Message m, ClientConnectionData client) {
+        try {
+            System.out.println("broadcasting: " + m);
+            client.getOut().writeObject(m);
+        } catch (Exception ex) {
+            System.out.println("broadcast caught exception: " + ex);
+            ex.printStackTrace();
+        }        
+    }
+
     @Override
     public void run() {
         try {
