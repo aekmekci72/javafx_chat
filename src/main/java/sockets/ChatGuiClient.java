@@ -176,6 +176,12 @@ public class ChatGuiClient extends Application {
         return names;
     }
 
+    public void addClient(String clientName) {
+        if (!names.contains(clientName)) {
+            names.add(clientName);
+        }
+    }
+
     private Optional<ServerInfo> getServerIpAndPort() {
         // In a more polished product, we probably would have the ip /port hardcoded
         // But this a great way to demonstrate making a custom dialog
