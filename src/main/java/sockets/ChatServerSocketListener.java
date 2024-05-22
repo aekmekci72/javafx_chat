@@ -16,19 +16,19 @@ public class ChatServerSocketListener  implements Runnable {
 
     private void processChatMessage(MessageCtoS_Chat m) {
         System.out.println("Chat received from " + client.getUserName() + " - broadcasting");
-        broadcast(new MessageStoC_Chat(client.getUserName(), m.msg), null);
+        broadcast(new MessageStoC_Chat(client.getUserName(), m.msg));
     }
 
     /**
      * Broadcasts a message to all clients connected to the server.
      */
-    public void broadcast(Message m, ClientConnectionData skipClient) {
+    public void broadcast(Message m) {
         try {
             System.out.println("broadcasting: " + m);
             for (ClientConnectionData c : clientList){
                 // if c equals skipClient, then c.
                 // or if c hasn't set a userName yet (still joining the server)
-                if ((c != skipClient) && (c.getUserName()!= null)){
+                if (c.getUserName()!= null){
                     c.getOut().writeObject(m);
                 }
             }
@@ -48,7 +48,7 @@ public class ChatServerSocketListener  implements Runnable {
 
             // Broadcast the welcome back to the client that joined. 
             // Their UI can decide what to do with the welcome message.
-            broadcast(new MessageStoC_Welcome(joinMessage.userName), null);
+            broadcast(new MessageStoC_Welcome(joinMessage.userName));
             
             while (true) {
                 Message msg = (Message) in.readObject();
@@ -75,7 +75,7 @@ public class ChatServerSocketListener  implements Runnable {
             clientList.remove(client); 
 
             // Notify everyone that the user left.
-            broadcast(new MessageStoC_Exit(client.getUserName()), client);
+            broadcast(new MessageStoC_Exit(client.getUserName()));
 
             try {
                 client.getSocket().close();
