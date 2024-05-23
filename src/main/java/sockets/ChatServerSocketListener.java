@@ -43,7 +43,8 @@ public class ChatServerSocketListener implements Runnable {
 
         for (ClientConnectionData clientConnectionData : clientList) {
             if (clientConnectionData.getUserName().equalsIgnoreCase(m.userName.trim())) {
-                respond(new MessageStoC_DM(m.msg, client.getUserName()), clientConnectionData);
+                respond(new MessageStoC_DMreciever(m.msg, client.getUserName()), clientConnectionData);
+                respond(new MessageStoC_DMsender(m.msg, client.getUserName()), client);
                 return;
             }
         }

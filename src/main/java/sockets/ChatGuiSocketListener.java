@@ -55,9 +55,15 @@ public class ChatGuiSocketListener implements Runnable {
     
     
 
-    private void processDirectMessage(MessageStoC_DM m) {
+    private void processDirectRecievedMessage(MessageStoC_DMreciever m) {
         Platform.runLater(() -> {
             chatGuiClient.getMessageArea().appendText(m.messanger + " DMed you: " + m.msg + "\n");
+        });
+    }
+
+    private void processDirectSentMessage(MessageStoC_DMsender m) {
+        Platform.runLater(() -> {
+            chatGuiClient.getMessageArea().appendText("You DMed "+m.messanged+": " + m.msg + "\n");
         });
     }
 
@@ -116,8 +122,10 @@ public class ChatGuiSocketListener implements Runnable {
                     } else {
                         processKickMessage(kickMessage);
                     }
-                } else if (msg instanceof MessageStoC_DM) {
-                    processDirectMessage((MessageStoC_DM) msg);
+                } else if (msg instanceof MessageStoC_DMreciever) {
+                    processDirectRecievedMessage((MessageStoC_DMreciever) msg);
+                } else if (msg instanceof MessageStoC_DMsender) {
+                    processDirectSentMessage((MessageStoC_DMsender) msg);
                 } else if (msg instanceof MessageStoC_Exit) {
                     processExitMessage((MessageStoC_Exit) msg);
                 } else if (msg instanceof MessageStoC_ExistingUsers) {
