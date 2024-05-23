@@ -23,6 +23,19 @@ public class ChatServerSocketListener implements Runnable {
     private void processKickMessage(MessageCtoS_Kick m) {
         System.out.println("Kick received from " + client.getUserName() + " to kick " + m.getUserName() + " - broadcasting");
         broadcast(new MessageStoC_Kick(client.getUserName(), m.getUserName()));
+        
+        for (ClientConnectionData kickedClient : clientList) {
+            if (kickedClient.getUserName().equals(m.getUserName())) {
+                kickedClient.setKickStatus(true);
+                try {
+                    kickedClient.getSocket().close();
+                } catch (IOException e) {
+                    System.out.println("Error closing socket of kicked client: " + e.getMessage());
+                }
+                clientList.remove(kickedClient);
+                break;
+            }
+        }
     }
 
     private void processDirectMessage(MessageCtoS_DM m) {
@@ -39,15 +52,18 @@ public class ChatServerSocketListener implements Runnable {
     }
 
     private void processQuitMessage() {
-        System.out.println(client.getUserName() + " has left the chat.");
-        clientList.remove(client);
-        broadcast(new MessageStoC_Exit(client.getUserName()));
+        if (!client.getKickStatus()) { 
+            System.out.println(client.getUserName() + " has left the chat.");
+            clientList.remove(client);
+            broadcast(new MessageStoC_Exit(client.getUserName()));
+        }
         try {
             client.getSocket().close();
         } catch (IOException ex) {
-            System.out.println("Error closing socket: " + ex.getMessage());
+            System.out.println("Exception closing socket: " + ex.getMessage());
         }
     }
+    
 
     /**
      * Broadcasts a message to all clients connected to the server.

@@ -3,6 +3,8 @@ package sockets;
 import java.io.ObjectInputStream;
 import java.util.Optional;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
 
 public class ChatGuiSocketListener implements Runnable {
@@ -44,9 +46,12 @@ public class ChatGuiSocketListener implements Runnable {
 
     private void processKickMessage(MessageStoC_Kick m) {
         Platform.runLater(() -> {
-            chatGuiClient.getMessageArea().appendText(m.getKickerName() + " kicked " + m.getUserName() + "\n");
+                chatGuiClient.getMessageArea().appendText(m.getUserName() + " kicked " + m.getKickerName() + "\n");
         });
+    
     }
+    
+    
 
     private void processDirectMessage(MessageStoC_DM m) {
         Platform.runLater(() -> {
@@ -55,6 +60,7 @@ public class ChatGuiSocketListener implements Runnable {
     }
 
     private void processExitMessage(MessageStoC_Exit m) {
+        
         Platform.runLater(() -> {
             chatGuiClient.getMessageArea().appendText(m.userName + " has left the chat!\n");
             chatGuiClient.removeClient(m.userName);
@@ -69,24 +75,42 @@ public class ChatGuiSocketListener implements Runnable {
         });
     }
 
+    public boolean isKicked(String kickedUserName) {
+        
+        return kickedUserName.equals(this.username);
+    }
+    
     public void run() {
         try {
             appRunning = true;
-
+    
             Platform.runLater(() -> {
                 this.username = getName();
                 chatGuiClient.sendMessage(new MessageCtoS_Join(username));
             });
-
+    
             while (appRunning) {
                 Message msg = (Message) socketIn.readObject();
-
+    
                 if (msg instanceof MessageStoC_Welcome) {
                     processWelcomeMessage((MessageStoC_Welcome) msg);
                 } else if (msg instanceof MessageStoC_Chat) {
                     processChatMessage((MessageStoC_Chat) msg);
                 } else if (msg instanceof MessageStoC_Kick) {
-                    processKickMessage((MessageStoC_Kick) msg);
+                    MessageStoC_Kick kickMessage = (MessageStoC_Kick) msg;
+                    if (isKicked(kickMessage.getKickerName())) {
+                        // If the client itself is kicked, force quit them
+                        Platform.runLater(() -> {
+                            
+                            chatGuiClient.getMessageArea().appendText("You have been kicked from the chat.\n");
+                            chatGuiClient.displayKickAlert(kickMessage.getUserName());
+
+                            // chatGuiClient.getStage().close(); // Close the chat window
+                        });
+                        break; // Exit the loop
+                    } else {
+                        processKickMessage(kickMessage);
+                    }
                 } else if (msg instanceof MessageStoC_DM) {
                     processDirectMessage((MessageStoC_DM) msg);
                 } else if (msg instanceof MessageStoC_Exit) {
@@ -103,7 +127,7 @@ public class ChatGuiSocketListener implements Runnable {
             System.out.println("Client Listener exiting");
         }
     }
-
+    
     private String getName() {
         String username = "";
         TextInputDialog nameDialog = new TextInputDialog();

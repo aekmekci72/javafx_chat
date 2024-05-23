@@ -10,6 +10,7 @@ public class ClientConnectionData {
     private ObjectOutputStream out;
     private String name;
     private String userName;
+    private boolean isKicked;
 
     public ClientConnectionData(Socket socket, ObjectInputStream input, ObjectOutputStream out, String name) {
         this.socket = socket;
@@ -20,6 +21,12 @@ public class ClientConnectionData {
 
     public Socket getSocket() {
         return socket;
+    }
+    public boolean getKickStatus(){
+        return isKicked;
+    }
+    public void setKickStatus(boolean status){
+        isKicked=status;
     }
 
     public void setSocket(Socket socket) {

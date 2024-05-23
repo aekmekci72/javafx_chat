@@ -14,6 +14,8 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -256,6 +258,16 @@ public class ChatGuiClient extends Application {
         return getServerDialog.showAndWait();
     }
 
+    public void displayKickAlert(String kickerName) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("You've been kicked");
+            alert.setHeaderText(null);
+            alert.setContentText(kickerName + " kicked you from the chat.");
+            alert.showAndWait();
+            stage.close();
+        });
+    }
     private class RadioListCell extends ListCell<String> {
         @Override
         public void updateItem(String obj, boolean empty) {
