@@ -190,7 +190,7 @@ public class ChatGuiClient extends Application {
     }
 
     public void addClient(String clientName) {
-        if (!names.contains(clientName)) {
+        if (!names.contains(clientName) ) {
             names.add(clientName);
         }
     }

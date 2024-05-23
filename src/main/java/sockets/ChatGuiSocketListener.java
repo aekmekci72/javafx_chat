@@ -33,7 +33,9 @@ public class ChatGuiSocketListener implements Runnable {
         } else {
             Platform.runLater(() -> {
                 chatGuiClient.getMessageArea().appendText(m.userName + " joined the chat!\n");
+                if(user!=username){
                 chatGuiClient.addClient(m.userName);
+                }
             });
         }
     }
@@ -70,7 +72,10 @@ public class ChatGuiSocketListener implements Runnable {
     private void processExistingUsersMessage(MessageStoC_ExistingUsers m) {
         Platform.runLater(() -> {
             for (String user : m.userNames) {
-                chatGuiClient.addClient(user);
+                if(user!=username){
+                    chatGuiClient.addClient(user);
+                }
+                
             }
         });
     }
