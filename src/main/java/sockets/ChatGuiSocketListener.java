@@ -26,6 +26,7 @@ public class ChatGuiSocketListener implements Runnable {
         if (user.equals(this.username)) {
             Platform.runLater(() -> {
                 chatGuiClient.getStage().setTitle("Chatter - " + username);
+                this.chatGuiClient.setUsersname(username);
                 chatGuiClient.getTextInput().setEditable(true);
                 chatGuiClient.getSendButton().setDisable(false);
                 chatGuiClient.getMessageArea().appendText("Welcome to the chat, " + username + "\n");

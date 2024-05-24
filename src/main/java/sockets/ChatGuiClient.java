@@ -48,10 +48,15 @@ public class ChatGuiClient extends Application {
 
     private ServerInfo serverInfo;
 
+    private String usersname;
+
     private String selectedUser = "Everyone";
 
     public void setSelectedUser(String user) {
         this.selectedUser = user;
+    }
+    public void setUsersname(String user) {
+        this.usersname = user;
     }
 
 
@@ -276,26 +281,32 @@ public class ChatGuiClient extends Application {
                 setText(null);
                 setGraphic(null);
             } else {
-                RadioButton radioButton = new RadioButton(obj);
-                radioButton.setToggleGroup(group);
-                radioButton.setSelected(obj.equals(selectedUser));
-                radioButton.setOnAction(event -> {
-                    setSelectedUser(obj);
-                });
-    
-                HBox hbox = new HBox(radioButton);
-                if (!obj.equals("Everyone") && !obj.equals(selectedUser)) {
-                    Button kickButton = new Button("Kick");
-                    kickButton.setOnAction(event -> {
-                        String userNameToKick = obj;
-                        kickUser(userNameToKick);
+                HBox hbox;
+                if (obj.equals(usersname)) {
+                    hbox = new HBox(new Label("You"));
+                } else {
+                    RadioButton radioButton = new RadioButton(obj);
+                    radioButton.setToggleGroup(group);
+                    radioButton.setSelected(obj.equals(selectedUser));
+                    radioButton.setOnAction(event -> {
+                        setSelectedUser(obj);
                     });
-                    hbox.getChildren().add(kickButton);
+    
+                    hbox = new HBox(radioButton);
+                    if (!obj.equals("Everyone")) {
+                        Button kickButton = new Button("Kick");
+                        kickButton.setOnAction(event -> {
+                            String userNameToKick = obj;
+                            kickUser(userNameToKick);
+                        });
+                        hbox.getChildren().add(kickButton);
+                    }
                 }
                 setGraphic(hbox);
             }
         }
     }
+    
         
     private void kickUser(String userName) {
         sendMessage(new MessageCtoS_Kick(userName));
